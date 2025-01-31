@@ -45,7 +45,7 @@ interface _File extends _Blob, Or<File, globalThis.File> {
 }
 interface _File extends Or<globalThis.File, buffer.File> {}
 interface FileClass extends Or<typeof globalThis.File, typeof buffer.File> {}
-const _File: FileClass = File || buffer.File;
+const _File: FileClass = globalThis.File || buffer.File;
 if (typeof globalThis.File === 'undefined') {
   globalThis.File = _File;
 }
