@@ -17,14 +17,14 @@ export type BodyInit =
 
 // See: https://nodejs.org/docs/latest-v20.x/api/globals.html#class-file
 // The `File` global was only added in Node.js 20
+interface _File extends Or<File, globalThis.File> {}
 const _File: Or<typeof File, typeof buffer.File> = buffer.File;
 if (typeof globalThis.File === 'undefined') {
   globalThis.File = _File;
 }
 
 declare global {
-  interface File extends _File {}
-  var File: typeof File;
+  var File: typeof _File;
 
   // NOTE: In case undici was used, but its types aren't applied, this needs to be added
   interface RequestInit {
