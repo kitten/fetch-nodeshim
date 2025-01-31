@@ -1,5 +1,3 @@
-/// <reference types="@types/node" />
-
 import * as buffer from 'node:buffer';
 
 type Or<T, U> = void extends T ? U : T;
@@ -41,14 +39,19 @@ export type BodyInit =
 
 // See: https://nodejs.org/docs/latest-v20.x/api/globals.html#class-file
 // The `File` global was only added in Node.js 20
-interface _File extends _Blob, Or<File, globalThis.File> {}
-const _File: Or<typeof File, typeof buffer.File> = buffer.File;
+interface _File extends _Blob, Or<File, globalThis.File> {
+  readonly name: string;
+  readonly lastModified: number;
+}
+interface _File extends Or<globalThis.File, buffer.File> {}
+interface FileClass extends Or<typeof globalThis.File, typeof buffer.File> {}
+const _File: FileClass = File || buffer.File;
 if (typeof globalThis.File === 'undefined') {
   globalThis.File = _File;
 }
 
 declare global {
-  var File: typeof _File;
+  var File: _File;
 }
 
 // There be dragons here.
