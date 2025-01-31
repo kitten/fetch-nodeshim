@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.2.1
+
+### Patch Changes
+
+- Provenance Release
+  Submitted by [@kitten](https://github.com/kitten) (See [#4](https://github.com/kitten/fetch-nodeshim/pull/4))
+
 ## 0.2.0
 
 ### Minor Changes
