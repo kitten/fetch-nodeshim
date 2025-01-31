@@ -5,6 +5,7 @@ import * as url from 'node:url';
 
 import { extractBody } from './body';
 import { createContentDecoder } from './encoding';
+import { URL, Request, RequestInit, Response } from './webstd';
 
 /** Maximum allowed redirects (matching Chromium's limit) */
 const MAX_REDIRECTS = 20;
@@ -102,7 +103,7 @@ function createResponse(
   return response;
 }
 
-export async function fetch(
+async function _fetch(
   input: string | URL | Request,
   requestInit?: RequestInit
 ): Promise<Response> {
@@ -131,7 +132,7 @@ export async function fetch(
     signal,
   } satisfies http.RequestOptions;
 
-  function _fetch(
+  function _call(
     resolve: (response: Response | Promise<Response>) => void,
     reject: (reason?: any) => void
   ) {
@@ -196,7 +197,7 @@ export async function fetch(
             requestOptions,
             urlToHttpOptions((requestUrl = locationURL))
           );
-          return _fetch(resolve, reject);
+          return _call(resolve, reject);
         }
       }
 
@@ -258,5 +259,7 @@ export async function fetch(
     }
   }
 
-  return await new Promise(_fetch);
+  return await new Promise(_call);
 }
+
+export { _fetch as fetch };

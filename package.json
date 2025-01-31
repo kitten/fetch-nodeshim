@@ -64,7 +64,7 @@
     "rollup-plugin-cjs-check": "^1.0.3",
     "rollup-plugin-dts": "^6.1.1",
     "typescript": "^5.7.3",
-    "undici-types": "^7.3.0",
+    "undici-types": "^6.20.0",
     "vitest": "^3.0.4"
   }
 }
