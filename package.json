@@ -47,6 +47,10 @@
   },
   "keywords": [],
   "license": "MIT",
+  "repository": "https://github.com/kitten/fetch-nodeshim",
+  "bugs": {
+    "url": "https://github.com/kitten/fetch-nodeshim/issues"
+  },
   "devDependencies": {
     "@babel/plugin-transform-block-scoping": "^7.25.9",
     "@babel/plugin-transform-typescript": "^7.26.7",
@@ -72,5 +76,9 @@
     "typescript": "^5.7.3",
     "undici-types": "^6.20.0",
     "vitest": "^3.0.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
