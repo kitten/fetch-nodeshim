@@ -66,11 +66,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: TypeScript
-        run: pnpm run check
-
       - name: Unit Tests
         run: pnpm run test
+
+      - name: Type checks
+        run: pnpm run check:all
 
       - name: Build
         run: pnpm run build

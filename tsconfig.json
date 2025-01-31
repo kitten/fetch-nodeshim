@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["@types/node"],
     "baseUrl": "./",
     "rootDir": ".",
     "forceConsistentCasingInFileNames": true,
