@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@types-internal/node-18"],
+    "paths": {
+      "@types/node": ["node_modules/@types-internal/node-18"],
+      "@types/node/*": ["node_modules/@types-internal/node-18/*"]
+    }
+  },
+  "include": ["src", "packages"]
+}

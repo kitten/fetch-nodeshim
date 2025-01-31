@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import { isAnyArrayBuffer } from 'node:util/types';
 import { randomBytes } from 'node:crypto';
+import { Blob, FormData, URLSearchParams } from './webstd';
 
 export type BodyInit =
   | Exclude<RequestInit['body'], undefined | null>
