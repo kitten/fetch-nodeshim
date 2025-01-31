@@ -50,10 +50,6 @@ if (typeof globalThis.File === 'undefined') {
   globalThis.File = _File;
 }
 
-declare global {
-  var File: _File;
-}
-
 // There be dragons here.
 // This is complex because of overlapping definitions in lib.dom, @types/node, and undici-types
 // Some types define and overload constructor interfaces with type interfaces

@@ -17,6 +17,7 @@
     "test": "vitest test",
     "test:run": "vitest test --run",
     "build": "rollup -c ./scripts/rollup.config.mjs",
+    "postbuild": "tsc --noEmit ./dist/minifetch.d.ts",
     "check": "tsc --noEmit",
     "check:node18": "tsc --noEmit -p ./tsconfig-node18.json",
     "check:node20": "tsc --noEmit -p ./tsconfig-node20.json",
