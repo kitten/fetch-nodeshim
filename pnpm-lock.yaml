@@ -69,8 +69,8 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
       undici-types:
-        specifier: ^7.3.0
-        version: 7.3.0
+        specifier: ^6.20.0
+        version: 6.20.0
       vitest:
         specifier: ^3.0.4
         version: 3.0.4(@types/node@22.12.0)(terser@5.37.0)(yaml@2.7.0)
@@ -1910,9 +1910,6 @@ packages:
 
   undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
-
-  undici-types@7.3.0:
-    resolution: {integrity: sha512-z2pHpkN2BEJl3QlQo0GtfGCyuhuBbWX60vzGwyn7ex/seM2UkvyGEfEV0Qb9pXc5StNfcJpsstgaf2YTEJa63Q==}
 
   universalify@0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
@@ -4031,8 +4028,6 @@ snapshots:
       which-boxed-primitive: 1.1.1
 
   undici-types@6.20.0: {}
-
-  undici-types@7.3.0: {}
 
   universalify@0.1.2: {}
 
