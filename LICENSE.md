@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) Phil Pluckthun,
+Copyright (c) 650 Industries, Inc. (aka Expo),
 Copyright (c) 2016 - 2020 Node Fetch Team,
 Copyright (c) Remix Software Inc. 2020-2021,
 Copyright (c) Shopify Inc. 2022-2024
