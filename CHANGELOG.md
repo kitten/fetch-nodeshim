@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.3.0
+
+### Minor Changes
+
+- Add `Body` mixin as export
+  Submitted by [@kitten](https://github.com/kitten) (See [#6](https://github.com/kitten/fetch-nodeshim/pull/6))
+
 ## 0.2.1
 
 ### Patch Changes
