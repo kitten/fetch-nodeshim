@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream';
 import { isAnyArrayBuffer } from 'node:util/types';
 import { randomBytes } from 'node:crypto';
-import { Blob, FormData, URLSearchParams } from './webstd';
+import { Response, Blob, FormData, URLSearchParams } from './webstd';
 
 export type BodyInit =
   | Exclude<RequestInit['body'], undefined | null>
@@ -196,3 +196,59 @@ export const extractBody = (object: BodyInit | null): BodyState => {
     body,
   };
 };
+
+const kBodyInternals = Symbol('kBodyInternals');
+
+export class Body {
+  private [kBodyInternals]: BodyState;
+
+  constructor(init: BodyInit | null) {
+    this[kBodyInternals] = extractBody(init);
+  }
+
+  get body() {
+    return this[kBodyInternals].body;
+  }
+
+  get bodyUsed() {
+    const { body } = this[kBodyInternals];
+    if (isReadable(body)) {
+      return Readable.isDisturbed(body);
+    } else if (isReadableStream(body)) {
+      return body.locked;
+    } else {
+      return false;
+    }
+  }
+
+  async arrayBuffer() {
+    const { body } = this[kBodyInternals];
+    return isAnyArrayBuffer(body)
+      ? body
+      : new Response(this.body).arrayBuffer();
+  }
+
+  async formData() {
+    const { body, contentLength, contentType } = this[kBodyInternals];
+    const headers = {};
+    if (contentLength) headers['Content-Length'] = contentLength;
+    if (contentType) headers['Content-Type'] = contentType;
+    return new Response(body, { headers }).formData();
+  }
+
+  async blob() {
+    const { contentType } = this[kBodyInternals];
+    return new Blob([await this.arrayBuffer()], {
+      type: contentType ?? undefined,
+    });
+  }
+
+  async json() {
+    const text = await this.text();
+    return JSON.parse(text);
+  }
+
+  async text() {
+    return new TextDecoder().decode(await this.arrayBuffer());
+  }
+}
