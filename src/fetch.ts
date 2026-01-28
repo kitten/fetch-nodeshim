@@ -6,6 +6,7 @@ import * as url from 'node:url';
 import { extractBody } from './body';
 import { createContentDecoder } from './encoding';
 import { URL, Request, RequestInit, Response } from './webstd';
+import { getHttpsAgent, getHttpAgent } from './agent';
 
 /** Maximum allowed redirects (matching Chromium's limit) */
 const MAX_REDIRECTS = 20;
@@ -131,6 +132,11 @@ async function _fetch(
     ),
     signal,
   } satisfies http.RequestOptions;
+
+  requestOptions.agent =
+    requestOptions.protocol === 'https:'
+      ? getHttpsAgent(requestOptions)
+      : getHttpAgent(requestOptions);
 
   function _call(
     resolve: (response: Response | Promise<Response>) => void,
