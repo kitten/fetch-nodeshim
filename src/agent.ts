@@ -151,6 +151,10 @@ const createRequestOptions = (
   };
 };
 
+// See: https://github.com/delvedor/hpagent
+// `hpagent` served as a template for how to create proxy agents like below minimally
+// MIT License, Copyright (c) 2020 Tomas Della Vedova
+
 class HttpProxyAgent extends http.Agent {
   _keepAlive: boolean;
   _proxy: URL;
