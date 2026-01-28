@@ -47,6 +47,8 @@ afterAll(async () => {
   await proxy.close();
 });
 
+const testCI = process.env.CI ? it : it.skip;
+
 describe('fetch via HTTP proxy', () => {
   it('performs an HTTP request when HTTP_PROXY is set (tunnel via CONNECT to HTTP)', async () => {
     process.env.HTTP_PROXY = proxy.url;
@@ -63,10 +65,13 @@ describe('fetch via HTTP proxy', () => {
     });
   });
 
-  it.skip('performs an HTTPs request when HTTPS_PROXY is set (tunnel via CONNECT to HTTPs)', async () => {
-    process.env.HTTPS_PROXY = proxy.url;
-    const response = await fetch('https://api.expo.dev');
-    expect(response.status).toBe(200);
-    expect(await response.text()).toBe('OK');
-  });
+  testCI(
+    'performs an HTTPs request when HTTPS_PROXY is set (tunnel via CONNECT to HTTPs)',
+    async () => {
+      process.env.HTTPS_PROXY = proxy.url;
+      const response = await fetch('https://api.expo.dev');
+      expect(response.status).toBe(200);
+      expect(await response.text()).toBe('OK');
+    }
+  );
 });
