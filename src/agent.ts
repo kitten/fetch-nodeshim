@@ -213,7 +213,8 @@ class HttpsProxyAgent extends https.Agent {
       if (response.statusCode === 200) {
         const netOpts = { ...options, socket };
         net._normalizeArgs(netOpts);
-        const secureSocket = net.createConnection(netOpts);
+        // @ts-expect-error: This isn't properly defined in @types/node
+        const secureSocket = super.createConnection(netOpts);
         callback(null, secureSocket);
       } else {
         socket.destroy();
