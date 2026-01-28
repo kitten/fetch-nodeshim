@@ -2,6 +2,15 @@ import * as https from 'node:https';
 import * as http from 'node:http';
 import * as net from 'node:net';
 
+declare module 'https' {
+  interface Agent {
+    createConnection(
+      opts: https.RequestOptions,
+      callback?: (err: Error | null, socket: net.Socket | null) => void
+    ): net.Socket;
+  }
+}
+
 declare module 'net' {
   export function _normalizeArgs(
     options: unknown
@@ -201,8 +210,8 @@ class HttpsProxyAgent extends https.Agent {
 
   createConnection(
     options: https.RequestOptions,
-    callback: (err: Error | null, socket: net.Socket | null) => void
-  ): void {
+    callback?: (err: Error | null, socket: net.Socket | null) => void
+  ): net.Socket {
     const request = (this._proxy.protocol === 'http:' ? http : https).request(
       createRequestOptions(this._proxy, this._keepAlive, options)
     );
@@ -213,12 +222,11 @@ class HttpsProxyAgent extends https.Agent {
       if (response.statusCode === 200) {
         const netOpts = { ...options, socket };
         net._normalizeArgs(netOpts);
-        // @ts-expect-error: This isn't properly defined in @types/node
         const secureSocket = super.createConnection(netOpts);
-        callback(null, secureSocket);
+        callback?.(null, secureSocket);
       } else {
         socket.destroy();
-        callback(
+        callback?.(
           new Error(
             `HTTP Proxy Network Error: ${response.statusMessage || response.statusCode}`
           ),
@@ -233,9 +241,10 @@ class HttpsProxyAgent extends https.Agent {
 
     request.once('error', err => {
       request.removeAllListeners();
-      callback(err, null);
+      callback?.(err, null);
     });
 
     request.end();
+    return request.socket!;
   }
 }
