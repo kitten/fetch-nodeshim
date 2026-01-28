@@ -62,4 +62,11 @@ describe('fetch via HTTP proxy', () => {
       url: '/inspect',
     });
   });
+
+  it.skip('performs an HTTPs request when HTTPS_PROXY is set (tunnel via CONNECT to HTTPs)', async () => {
+    process.env.HTTPS_PROXY = proxy.url;
+    const response = await fetch('https://api.expo.dev');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('OK');
+  });
 });
