@@ -93,7 +93,7 @@ const commonOutput = {
   dir: './',
   exports: 'auto',
   sourcemap: true,
-  sourcemapExcludeSources: false,
+  sourcemapExcludeSources: true,
   hoistTransitiveImports: false,
   indent: false,
   freeze: false,
@@ -188,6 +188,7 @@ const outputPlugins = [
     keep_fnames: true,
     ie8: false,
     compress: {
+      passes: 2,
       pure_getters: true,
       toplevel: true,
       booleans_as_integers: false,
@@ -199,6 +200,7 @@ const outputPlugins = [
       loops: false,
       conditionals: false,
       join_vars: false,
+      reduce_vars: true,
     },
     mangle: {
       module: true,
@@ -224,8 +226,9 @@ export default [
         exclude: 'node_modules/**',
         presets: [],
         plugins: [
-          '@babel/plugin-transform-typescript',
-          '@babel/plugin-transform-block-scoping',
+          ['@babel/plugin-transform-typescript', {
+            optimizeConstEnums: true,
+          }],
         ],
       }),
     ],
