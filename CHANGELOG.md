@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.2
+
+### Patch Changes
+
+- Unref the incoming socket when the timeout is disabled, to prevent body streams that never start from keeping processes alive
+  Submitted by [@kitten](https://github.com/kitten) (See [#14](https://github.com/kitten/fetch-nodeshim/pull/14))
+
 ## 0.4.1
 
 ### Patch Changes
