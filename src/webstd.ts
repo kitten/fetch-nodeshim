@@ -81,20 +81,17 @@ interface RequestClass extends Or<typeof Request, typeof globalThis.Request> {
     init?: _RequestInit | Or<RequestInit, globalThis.RequestInit>
   ): _Request;
 }
-const _Request: RequestClass = Request;
 
 interface _Response extends Or<Response, globalThis.Response> {}
 interface ResponseClass
   extends Or<typeof Response, typeof globalThis.Response> {
   new (body?: BodyInit, init?: _ResponseInit): _Response;
 }
-const _Response: ResponseClass = Response;
 
 interface _Headers extends Or<Headers, globalThis.Headers> {}
 interface HeadersClass extends Or<typeof Headers, typeof globalThis.Headers> {
   new (init?: HeadersInit): _Headers;
 }
-const _Headers: HeadersClass = Headers;
 
 interface _FormData
   extends Or<
@@ -103,7 +100,15 @@ interface _FormData
   > {}
 interface FormDataClass
   extends Or<typeof FormData, typeof globalThis.FormData> {}
-const _FormData: FormDataClass = FormData;
+
+let _Request: RequestClass;
+let _Response: ResponseClass;
+let _Headers: HeadersClass;
+let _FormData: FormDataClass;
+if (typeof Request !== 'undefined') _Request = Request;
+if (typeof Response !== 'undefined') _Response = Response;
+if (typeof Headers !== 'undefined') _Headers = Headers;
+if (typeof FormData !== 'undefined') _FormData = FormData;
 
 export {
   type _RequestInit as RequestInit,
