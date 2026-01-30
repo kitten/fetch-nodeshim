@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.1
+
+### Patch Changes
+
+- Add sane default timeout to `http.request`
+  Submitted by [@kitten](https://github.com/kitten) (See [#12](https://github.com/kitten/fetch-nodeshim/pull/12))
+
 ## 0.4.0
 
 ### Minor Changes
