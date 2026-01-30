@@ -57,7 +57,7 @@ const matchesNoProxy = (options: {
   }
 };
 
-const defaultAgentOpts = {
+export const defaultAgentOpts = {
   keepAlive: true,
   keepAliveMsecs: 1000,
 };
@@ -145,7 +145,7 @@ const createRequestOptions = (
     setHost: false,
     agent: false,
     proxyEnv: {},
-    timeout: 8_000,
+    timeout: 5_000,
     headers: proxyHeaders,
     servername: proxy.protocol === 'https:' ? proxy.hostname : undefined,
   };

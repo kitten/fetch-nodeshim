@@ -127,6 +127,7 @@ async function _fetch(
   );
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
+    timeout: 5_000,
     method: methodToHttpOption(
       initFromRequest ? input.method : requestInit?.method
     ),
