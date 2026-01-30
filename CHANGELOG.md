@@ -1,5 +1,19 @@
 # minifetch
 
+## 0.4.0
+
+### Minor Changes
+
+- Add automatic configuration for `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` similar to the upcoming Node 24+ built-in support. Agents will automatically be created and used when these environment variables are set
+  Submitted by [@kitten](https://github.com/kitten) (See [#8](https://github.com/kitten/fetch-nodeshim/pull/8))
+
+### Patch Changes
+
+- Prevent outright error when `--no-experimental-fetch` is set, which causes `Request`, `Response`, `FormData`, and `Headers` to not be available globally
+  Submitted by [@kitten](https://github.com/kitten) (See [#11](https://github.com/kitten/fetch-nodeshim/pull/11))
+- Update rollup config for reduced output and exclude sources from sourcemaps
+  Submitted by [@kitten](https://github.com/kitten) (See [#9](https://github.com/kitten/fetch-nodeshim/pull/9))
+
 ## 0.3.0
 
 ### Minor Changes
