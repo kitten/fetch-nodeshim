@@ -149,6 +149,7 @@ async function _fetch(
 
     outgoing.on('response', incoming => {
       incoming.setTimeout(0); // Forcefully disable timeout
+      incoming.socket.unref();
 
       const init = {
         status: incoming.statusCode,
