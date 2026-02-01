@@ -155,6 +155,7 @@ async function _fetch(
         incoming?.destroy(signal?.aborted ? signal.reason : reason);
         reject(signal?.aborted ? signal.reason : reason);
       }
+      signal?.removeEventListener('abort', destroy);
     };
 
     signal?.addEventListener('abort', destroy);
