@@ -7,7 +7,7 @@ declare module 'https' {
     createConnection(
       opts: https.RequestOptions,
       callback?: (err: Error | null, socket: net.Socket | null) => void
-    ): net.Socket;
+    ): net.Socket | null;
   }
 }
 
@@ -215,7 +215,7 @@ class HttpsProxyAgent extends https.Agent {
   createConnection(
     options: https.RequestOptions,
     callback?: (err: Error | null, socket: net.Socket | null) => void
-  ): net.Socket {
+  ): net.Socket | null {
     const request = (this._proxy.protocol === 'http:' ? http : https).request(
       createRequestOptions(this._proxy, this._keepAlive, options)
     );
@@ -249,6 +249,6 @@ class HttpsProxyAgent extends https.Agent {
     });
 
     request.end();
-    return request.socket!;
+    return request.socket;
   }
 }
