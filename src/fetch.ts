@@ -134,15 +134,14 @@ async function _fetch(
     signal,
   } satisfies http.RequestOptions;
 
-  requestOptions.agent =
-    requestOptions.protocol === 'https:'
-      ? getHttpsAgent(requestOptions)
-      : getHttpAgent(requestOptions);
-
   function _call(
     resolve: (response: Response | Promise<Response>) => void,
     reject: (reason?: any) => void
   ) {
+    requestOptions.agent =
+      requestOptions.protocol === 'https:'
+        ? getHttpsAgent(requestOptions)
+        : getHttpAgent(requestOptions);
     const method = requestOptions.method;
     const protocol = requestOptions.protocol === 'https:' ? https : http;
     const outgoing = protocol.request(requestOptions);
