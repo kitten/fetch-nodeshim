@@ -148,7 +148,6 @@ async function _fetch(
     const outgoing = protocol.request(requestOptions);
 
     let incoming: http.IncomingMessage | undefined;
-    let response: Response | undefined;
 
     const destroy = (reason?: any) => {
       if (reason) {
@@ -239,11 +238,11 @@ async function _fetch(
       }
 
       resolve(
-        (response = createResponse(body, init, {
+        createResponse(body, init, {
           type: 'default',
           url: requestUrl.toString(),
           redirected: redirects > 0,
-        }))
+        })
       );
     });
 
