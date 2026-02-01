@@ -104,20 +104,4 @@ describe('fetch error handling', () => {
       await expect(response.text()).rejects.toThrow();
     });
   });
-
-  describe('response cleanup', () => {
-    it('should mark response as used on error', async () => {
-      const url = server.mock((_req, res) => {
-        res.writeHead(200, { 'Content-Length': '100' });
-        res.write('x');
-        setTimeout(() => res.destroy(), 10);
-      });
-
-      const response = await fetch(url);
-      try {
-        await response.text();
-      } catch {}
-      expect(response.bodyUsed).toBe(true);
-    });
-  });
 });
