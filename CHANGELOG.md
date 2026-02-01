@@ -1,5 +1,28 @@
 # minifetch
 
+## 0.4.3
+
+### Patch Changes
+
+- ⚠️ Fix typo in `NO_PROXY` construction
+  Submitted by [@kitten](https://github.com/kitten) (See [#18](https://github.com/kitten/fetch-nodeshim/pull/18))
+- Set `Content-Length: 0` when `response.body` is `null` for `PATCH` as well
+  Submitted by [@kitten](https://github.com/kitten) (See [#23](https://github.com/kitten/fetch-nodeshim/pull/23))
+- Protect against invalid `Location` URI
+  Submitted by [@kitten](https://github.com/kitten) (See [#26](https://github.com/kitten/fetch-nodeshim/pull/26))
+- Issue an explicit `ETIMEDOUT` when the request times out
+  Submitted by [@kitten](https://github.com/kitten) (See [#24](https://github.com/kitten/fetch-nodeshim/pull/24))
+- ⚠️ Fix `Set-Cookie` list handling by capturing them with `Headers#append`
+  Submitted by [@kitten](https://github.com/kitten) (See [#20](https://github.com/kitten/fetch-nodeshim/pull/20))
+- Reset `requestOptions.agent` on retry/redirect
+  Submitted by [@kitten](https://github.com/kitten) (See [#27](https://github.com/kitten/fetch-nodeshim/pull/27))
+- ⚠️ Fix `_final` on `InflateStream` calling `callback` before full flush
+  Submitted by [@kitten](https://github.com/kitten) (See [#25](https://github.com/kitten/fetch-nodeshim/pull/25))
+- Propagate errors for duplex request/response streams, and ensure early errors propagate to the Response stream
+  Submitted by [@kitten](https://github.com/kitten) (See [#16](https://github.com/kitten/fetch-nodeshim/pull/16))
+- Protect against missing `Symbol.toStringTag`
+  Submitted by [@kitten](https://github.com/kitten) (See [#19](https://github.com/kitten/fetch-nodeshim/pull/19))
+
 ## 0.4.2
 
 ### Patch Changes
