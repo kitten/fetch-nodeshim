@@ -253,7 +253,10 @@ async function _fetch(
     if (requestBody.contentType)
       requestHeaders.set('Content-Type', requestBody.contentType);
 
-    if (requestBody.body == null && (method === 'POST' || method === 'PUT')) {
+    if (
+      requestBody.body == null &&
+      (method === 'POST' || method === 'PUT' || method === 'PATCH')
+    ) {
       requestHeaders.set('Content-Length', '0');
     } else if (requestBody.body != null && requestBody.contentLength != null) {
       requestHeaders.set('Content-Length', `${requestBody.contentLength}`);
