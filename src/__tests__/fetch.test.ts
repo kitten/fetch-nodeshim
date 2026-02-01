@@ -290,16 +290,23 @@ describe(fetch, () => {
       });
     });
 
-    it.each([['follow'], ['manual']] as const)(
-      'should treat broken redirect as ordinary response (%s)',
-      async redirect => {
-        const response = await fetch(new URL('redirect/no-location', baseURL), {
-          redirect,
-        });
-        expect(response.status).toBe(301);
-        expect(response.headers.has('location')).toBe(false);
-      }
-    );
+    it('should treat broken redirect as ordinary response for redirect: "manual"', async () => {
+      const response = await fetch(new URL('redirect/no-location', baseURL), {
+        redirect: 'manual',
+      });
+      expect(response.status).toBe(301);
+      expect(response.headers.has('location')).toBe(false);
+    });
+
+    it('should throw on broken redirects for redirect: "follow"', async () => {
+      await expect(() =>
+        fetch(new URL('redirect/no-location', baseURL), {
+          redirect: 'follow',
+        })
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[Error: URI requested responds with an invalid redirect URL]`
+      );
+    });
 
     it('should throw a TypeError on an invalid redirect option', async () => {
       await expect(() =>
