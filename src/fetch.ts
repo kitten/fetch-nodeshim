@@ -15,7 +15,7 @@ const MAX_REDIRECTS = 20;
 const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
   const headers = new Headers();
   for (let i = 0; i < rawHeaders.length; i += 2)
-    headers.set(rawHeaders[i], rawHeaders[i + 1]);
+    headers.append(rawHeaders[i], rawHeaders[i + 1]);
   return headers;
 };
 
