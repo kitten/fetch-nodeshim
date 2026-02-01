@@ -77,8 +77,8 @@ const isBlob = (object: any): object is Blob => {
     typeof object.stream === 'function' &&
     typeof object.constructor === 'function'
   ) {
-    const tag = object[Symbol.toStringTag];
-    return tag.startsWith('Blob') || tag.startsWith('File');
+    const tag = object[Symbol.toStringTag] as string | undefined;
+    return !!tag && (tag.startsWith('Blob') || tag.startsWith('File'));
   } else {
     return false;
   }
