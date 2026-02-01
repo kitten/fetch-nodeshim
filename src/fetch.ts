@@ -160,6 +160,14 @@ async function _fetch(
 
     signal?.addEventListener('abort', destroy);
 
+    outgoing.on('timeout', () => {
+      if (!incoming) {
+        const error = new Error('Request timed out') as NodeJS.ErrnoException;
+        error.code = 'ETIMEDOUT';
+        destroy(error);
+      }
+    });
+
     outgoing.on('response', _incoming => {
       if (signal?.aborted) {
         return;
