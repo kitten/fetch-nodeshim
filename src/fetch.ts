@@ -11,6 +11,14 @@ import { getHttpsAgent, getHttpAgent } from './agent';
 /** Maximum allowed redirects (matching Chromium's limit) */
 const MAX_REDIRECTS = 20;
 
+const parseURL = (input: string, base?: string | URL): URL | null => {
+  try {
+    return new URL(input, base);
+  } catch {
+    return null;
+  }
+};
+
 /** Convert Node.js raw headers array to Headers */
 const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
   const headers = new Headers();
@@ -187,9 +195,8 @@ async function _fetch(
       if (isRedirectCode(init.status)) {
         const location = init.headers.get('Location');
         const locationURL =
-          location != null ? new URL(location, requestUrl) : null;
+          location != null ? parseURL(location, requestUrl) : null;
         if (redirect === 'error') {
-          // TODO: do we need a special Error instance here?
           reject(
             new Error(
               'URI requested responds with a redirect, redirect mode is set to error'
@@ -198,8 +205,13 @@ async function _fetch(
           return;
         } else if (redirect === 'manual' && locationURL !== null) {
           init.headers.set('Location', locationURL.toString());
-        } else if (redirect === 'follow' && locationURL !== null) {
-          if (++redirects > MAX_REDIRECTS) {
+        } else if (redirect === 'follow') {
+          if (locationURL === null) {
+            reject(
+              new Error('URI requested responds with an invalid redirect URL')
+            );
+            return;
+          } else if (++redirects > MAX_REDIRECTS) {
             reject(new Error(`maximum redirect reached at: ${requestUrl}`));
             return;
           } else if (
