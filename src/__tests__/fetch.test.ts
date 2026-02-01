@@ -595,7 +595,7 @@ describe(fetch, () => {
       });
       setTimeout(() => controller.abort(), 100);
       await expect(response$).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 
@@ -613,10 +613,10 @@ describe(fetch, () => {
       ];
       setTimeout(() => controller.abort(), 100);
       await expect(fetches[0]).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
       await expect(fetches[1]).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 
@@ -627,7 +627,7 @@ describe(fetch, () => {
           signal: controller.signal,
         });
       }).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 
@@ -639,7 +639,7 @@ describe(fetch, () => {
       await expect(() =>
         fetch(request)
       ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 
@@ -672,7 +672,7 @@ describe(fetch, () => {
       });
       controller.abort();
       await expect(response$).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 
@@ -708,7 +708,7 @@ describe(fetch, () => {
       controller.abort();
       await bodyError$;
       await expect(response$).rejects.toMatchInlineSnapshot(
-        `[AbortError: The operation was aborted]`
+        `[AbortError: This operation was aborted]`
       );
     });
 

@@ -147,9 +147,27 @@ async function _fetch(
     const protocol = requestOptions.protocol === 'https:' ? https : http;
     const outgoing = protocol.request(requestOptions);
 
-    outgoing.on('response', incoming => {
+    let incoming: http.IncomingMessage | undefined;
+
+    const destroy = (reason?: any) => {
+      if (reason) {
+        outgoing?.destroy(signal?.aborted ? signal.reason : reason);
+        incoming?.destroy(signal?.aborted ? signal.reason : reason);
+        reject(signal?.aborted ? signal.reason : reason);
+      }
+    };
+
+    signal?.addEventListener('abort', destroy);
+
+    outgoing.on('response', _incoming => {
+      if (signal?.aborted) {
+        return;
+      }
+
+      incoming = _incoming;
       incoming.setTimeout(0); // Forcefully disable timeout
       incoming.socket.unref();
+      incoming.on('error', destroy);
 
       const init = {
         status: incoming.statusCode,
@@ -209,16 +227,6 @@ async function _fetch(
         }
       }
 
-      const destroy = (reason?: any) => {
-        signal?.removeEventListener('abort', destroy);
-        if (reason) {
-          incoming.destroy(signal?.aborted ? signal.reason : reason);
-          reject(signal?.aborted ? signal.reason : reason);
-        }
-      };
-
-      signal?.addEventListener('abort', destroy);
-
       let body: Readable | null = incoming;
       const encoding = init.headers.get('Content-Encoding')?.toLowerCase();
       if (method === 'HEAD' || init.status === 204 || init.status === 304) {
@@ -226,6 +234,7 @@ async function _fetch(
       } else if (encoding != null) {
         init.headers.set('Content-Encoding', encoding);
         body = pipeline(body, createContentDecoder(encoding), destroy);
+        outgoing.on('error', destroy);
       }
 
       resolve(
@@ -237,7 +246,7 @@ async function _fetch(
       );
     });
 
-    outgoing.on('error', reject);
+    outgoing.on('error', destroy);
 
     if (!requestHeaders.has('Accept')) requestHeaders.set('Accept', '*/*');
     if (requestBody.contentType)
@@ -261,9 +270,7 @@ async function _fetch(
         requestBody.body instanceof Stream
           ? requestBody.body
           : Readable.fromWeb(requestBody.body);
-      pipeline(body, outgoing, error => {
-        if (error) reject(error);
-      });
+      pipeline(body, outgoing, destroy);
     }
   }
 

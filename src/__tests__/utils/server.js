@@ -3,7 +3,7 @@
 import http from 'http';
 import zlib from 'zlib';
 import Busboy from 'busboy';
-import {once} from 'events';
+import { once } from 'events';
 
 export default class TestServer {
   constructor() {
@@ -42,15 +42,20 @@ export default class TestServer {
     return `http://${this.hostname}:${this.port}/mocked`;
   }
 
+  mock(handler) {
+    this.server.nextResponseHandler = handler;
+    return `http://${this.hostname}:${this.port}/mocked`;
+  }
+
   router(request, res) {
     const p = request.url;
 
     if (p === '/mocked') {
       if (this.nextResponseHandler) {
-        this.nextResponseHandler(res);
+        this.nextResponseHandler(request, res);
         this.nextResponseHandler = undefined;
       } else {
-        throw new Error('No mocked response. Use ’TestServer.mockResponse()’.');
+        throw new Error("No mocked response. Use 'TestServer.mockResponse()'.");
       }
     }
 
@@ -91,9 +96,11 @@ export default class TestServer {
     if (p === '/json') {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({
-        name: 'value'
-      }));
+      res.end(
+        JSON.stringify({
+          name: 'value',
+        })
+      );
     }
 
     if (p === '/gzip') {
@@ -244,8 +251,8 @@ export default class TestServer {
     }
 
     if (p === '/redirect/301/rn') {
-      res.statusCode = 301
-      res.setHeader('Location', '/403')
+      res.statusCode = 301;
+      res.setHeader('Location', '/403');
       res.write('301 Permanently moved.\r\n');
       res.end();
     }
@@ -321,7 +328,7 @@ export default class TestServer {
     if (p === '/redirect/chunked') {
       res.writeHead(301, {
         Location: '/inspect',
-        'Transfer-Encoding': 'chunked'
+        'Transfer-Encoding': 'chunked',
       });
       setTimeout(() => res.end(), 10);
     }
@@ -349,7 +356,7 @@ export default class TestServer {
     }
 
     if (p === '/error/premature') {
-      res.writeHead(200, {'content-length': 50});
+      res.writeHead(200, { 'content-length': 50 });
       res.write('foo');
       setTimeout(() => {
         res.destroy();
@@ -359,13 +366,13 @@ export default class TestServer {
     if (p === '/error/premature/chunked') {
       res.writeHead(200, {
         'Content-Type': 'application/json',
-        'Transfer-Encoding': 'chunked'
+        'Transfer-Encoding': 'chunked',
       });
 
-      res.write(`${JSON.stringify({data: 'hi'})}\n`);
+      res.write(`${JSON.stringify({ data: 'hi' })}\n`);
 
       setTimeout(() => {
-        res.write(`${JSON.stringify({data: 'bye'})}\n`);
+        res.write(`${JSON.stringify({ data: 'bye' })}\n`);
       }, 50);
 
       setTimeout(() => {
@@ -435,38 +442,43 @@ export default class TestServer {
         body += c;
       });
       request.on('end', () => {
-        res.end(JSON.stringify({
-          inspect: true,
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-          body
-        }));
+        res.end(
+          JSON.stringify({
+            inspect: true,
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+            body,
+          })
+        );
       });
     }
 
     if (p === '/multipart') {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
-      const busboy = new Busboy({headers: request.headers});
+      const busboy = new Busboy({ headers: request.headers });
       let body = '';
       busboy.on('file', async (fieldName, file, fileName) => {
         body += `${fieldName}=${fileName}`;
         // consume file data
         // eslint-disable-next-line no-empty, no-unused-vars
-        for await (const c of file) { }
+        for await (const c of file) {
+        }
       });
 
       busboy.on('field', (fieldName, value) => {
         body += `${fieldName}=${value}`;
       });
       busboy.on('finish', () => {
-        res.end(JSON.stringify({
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-          body
-        }));
+        res.end(
+          JSON.stringify({
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+            body,
+          })
+        );
       });
       request.pipe(busboy);
     }
