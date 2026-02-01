@@ -23,9 +23,10 @@ const getHttpsProxyUrl = () =>
 const getNoProxy = () => process.env.NO_PROXY ?? process.env.no_proxy;
 
 const createProxyPattern = (pattern: string): RegExp => {
-  pattern = pattern.trim().replace(/\./g, '\\.').replace(/\*/g, '[\\w.]+');
+  pattern = pattern.trim();
   if (!pattern.startsWith('.')) pattern = `^${pattern}`;
   if (!pattern.endsWith('.') || pattern.includes(':')) pattern += '$';
+  pattern = pattern.replace(/\./g, '\\.').replace(/\*/g, '[\\w.]+');
   return new RegExp(pattern, 'i');
 };
 
