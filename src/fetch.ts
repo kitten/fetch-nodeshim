@@ -127,7 +127,7 @@ async function _fetch(
   );
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
-    timeout: 5_000,
+    timeout: 500,
     method: methodToHttpOption(
       initFromRequest ? input.method : requestInit?.method
     ),
@@ -159,6 +159,12 @@ async function _fetch(
     };
 
     signal?.addEventListener('abort', destroy);
+
+    outgoing.on('timeout', () => {
+      const error = new Error('Request timed out') as NodeJS.ErrnoException;
+      error.code = 'ETIMEDOUT';
+      destroy(error);
+    });
 
     outgoing.on('response', _incoming => {
       if (signal?.aborted) {
