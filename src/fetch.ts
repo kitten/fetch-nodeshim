@@ -203,8 +203,8 @@ async function _fetch(
             )
           );
           return;
-        } else if (redirect === 'manual' && locationURL !== null) {
-          init.headers.set('Location', locationURL.toString());
+        } else if (redirect === 'manual' && location) {
+          init.headers.set('Location', locationURL?.href ?? location);
         } else if (redirect === 'follow') {
           if (locationURL === null) {
             reject(
