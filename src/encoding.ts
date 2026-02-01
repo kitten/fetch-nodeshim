@@ -37,10 +37,12 @@ class InflateStream extends Transform {
 
   _final(callback: TransformCallback) {
     if (this._inflate) {
+      this._inflate.once('finish', callback);
       this._inflate.end();
       this._inflate = undefined;
+    } else {
+      callback();
     }
-    callback();
   }
 }
 
