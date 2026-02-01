@@ -22,12 +22,12 @@ const getHttpsProxyUrl = () =>
   process.env.HTTPS_PROXY ?? process.env.https_proxy;
 const getNoProxy = () => process.env.NO_PROXY ?? process.env.no_proxy;
 
-const createProxyPattern = (pattern: string): RegExp => {
+const createProxyPattern = (pattern: string): RegExp | null => {
   pattern = pattern.trim();
   if (!pattern.startsWith('.')) pattern = `^${pattern}`;
   if (!pattern.endsWith('.') || pattern.includes(':')) pattern += '$';
   pattern = pattern.replace(/\./g, '\\.').replace(/\*/g, '[\\w.]+');
-  return new RegExp(pattern, 'i');
+  return pattern ? new RegExp(pattern, 'i') : null;
 };
 
 const matchesNoProxy = (options: {
@@ -42,14 +42,17 @@ const matchesNoProxy = (options: {
   } else if (NO_PROXY) {
     for (const noProxyPattern of NO_PROXY.split(',')) {
       const hostPattern = createProxyPattern(noProxyPattern);
-      const hostname = options.hostname || options.host;
-      const origin =
-        hostname && `${hostname}:${options.port || options.defaultPort || 80}`;
-      if (
-        (hostname && hostPattern.test(hostname)) ||
-        (origin && hostPattern.test(origin))
-      ) {
-        return true;
+      if (hostPattern) {
+        const hostname = options.hostname || options.host;
+        const origin =
+          hostname &&
+          `${hostname}:${options.port || options.defaultPort || 80}`;
+        if (
+          (hostname && hostPattern.test(hostname)) ||
+          (origin && hostPattern.test(origin))
+        ) {
+          return true;
+        }
       }
     }
     return false;
