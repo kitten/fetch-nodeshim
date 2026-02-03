@@ -118,10 +118,10 @@ function attachRefLifetime(body: Readable, socket: Socket): void {
   body.on('close', () => {
     socket.unref();
   });
-  body._read = function _readRef(size: number) {
+  body._read = function _readRef(...args: Parameters<Readable['_read']>) {
     body._read = _read;
     socket.ref();
-    return _read.call(this, size);
+    return _read.apply(this, args);
   };
 }
 
