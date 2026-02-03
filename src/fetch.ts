@@ -1,4 +1,5 @@
 import { Stream, Readable, pipeline } from 'node:stream';
+import { Socket } from 'node:net';
 import * as https from 'node:https';
 import * as http from 'node:http';
 import * as url from 'node:url';
@@ -110,6 +111,18 @@ function createResponse(
   if (params.redirected)
     Object.defineProperty(response, 'redirected', { value: params.redirected });
   return response;
+}
+
+function attachRefLifetime(body: Readable, socket: Socket): void {
+  const { _read } = body;
+  body.on('close', () => {
+    socket.unref();
+  });
+  body._read = function _readRef(...args: Parameters<Readable['_read']>) {
+    body._read = _read;
+    socket.ref();
+    return _read.apply(this, args);
+  };
 }
 
 async function _fetch(
@@ -255,6 +268,12 @@ async function _fetch(
         init.headers.set('Content-Encoding', encoding);
         body = pipeline(body, createContentDecoder(encoding), destroy);
         outgoing.on('error', destroy);
+      }
+
+      // Re-ref the socket when the body starts being consumed to prevent
+      // early process exit, then unref when done to allow normal exit.
+      if (body != null) {
+        attachRefLifetime(body, incoming.socket);
       }
 
       resolve(
