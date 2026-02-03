@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.4
+
+### Patch Changes
+
+- Limit state in which `incoming.socket` is unrefed and instead `.ref()` it when the body is being read, and `.unref()` it again when reading stops
+  Submitted by [@kitten](https://github.com/kitten) (See [#28](https://github.com/kitten/fetch-nodeshim/pull/28))
+
 ## 0.4.3
 
 ### Patch Changes
