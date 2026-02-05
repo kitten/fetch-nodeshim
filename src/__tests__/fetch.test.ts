@@ -122,6 +122,16 @@ describe(fetch, () => {
       });
     });
 
+    it('should send custom Content-Type with body', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: { 'content-type': 'some/magic' },
+        body: 'test',
+      });
+      expect(await response.json()).toMatchObject({
+        headers: expect.objectContaining({ 'content-type': 'some/magic' }),
+      });
+    });
+
     it('should prefer init headers when Request is passed', async () => {
       const request = new Request(new URL('inspect', baseURL), {
         headers: { 'x-custom-header': 'abc' },

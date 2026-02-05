@@ -287,9 +287,12 @@ async function _fetch(
 
     outgoing.on('error', destroy);
 
-    if (!requestHeaders.has('Accept')) requestHeaders.set('Accept', '*/*');
-    if (requestBody.contentType)
+    if (!requestHeaders.has('Accept')) {
+      requestHeaders.set('Accept', '*/*');
+    }
+    if (!requestHeaders.has('Content-Type') && requestBody.contentType) {
       requestHeaders.set('Content-Type', requestBody.contentType);
+    }
 
     if (
       requestBody.body == null &&
