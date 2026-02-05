@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.5
+
+### Patch Changes
+
+- ⚠️ Fix `Content-Type` being overridden for string inputs when it's already set
+  Submitted by [@kitten](https://github.com/kitten) (See [#30](https://github.com/kitten/fetch-nodeshim/pull/30))
+
 ## 0.4.4
 
 ### Patch Changes
