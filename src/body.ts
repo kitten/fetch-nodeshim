@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import { arrayBuffer, blob, text } from 'node:stream/consumers';
 import { isAnyArrayBuffer } from 'node:util/types';
 import { randomBytes } from 'node:crypto';
 import { Response, Blob, FormData, URLSearchParams } from './webstd';
@@ -223,9 +224,7 @@ export class Body {
 
   async arrayBuffer() {
     const { body } = this[kBodyInternals];
-    return isAnyArrayBuffer(body)
-      ? body
-      : new Response(this.body).arrayBuffer();
+    return body != null && !isAnyArrayBuffer(body) ? arrayBuffer(body) : body;
   }
 
   async formData() {
@@ -237,18 +236,22 @@ export class Body {
   }
 
   async blob() {
-    const { contentType } = this[kBodyInternals];
-    return new Blob([await this.arrayBuffer()], {
+    const { body, contentType } = this[kBodyInternals];
+    const chunks =
+      body !== null ? [!isAnyArrayBuffer(body) ? await blob(body) : body] : [];
+    return new Blob(chunks, {
       type: contentType ?? undefined,
     });
   }
 
   async json() {
-    const text = await this.text();
-    return JSON.parse(text);
+    return JSON.parse(await this.text());
   }
 
   async text() {
-    return new TextDecoder().decode(await this.arrayBuffer());
+    const { body } = this[kBodyInternals];
+    return body == null || isAnyArrayBuffer(body)
+      ? new TextDecoder().decode(await this.arrayBuffer())
+      : text(body);
   }
 }
