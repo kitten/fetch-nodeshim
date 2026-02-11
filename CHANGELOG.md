@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.6
+
+### Patch Changes
+
+- Replace undici `Response` with `node:stream/consumers` in body helper
+  Submitted by [@kitten](https://github.com/kitten) (See [#32](https://github.com/kitten/fetch-nodeshim/pull/32))
+
 ## 0.4.5
 
 ### Patch Changes
