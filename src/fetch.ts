@@ -33,10 +33,21 @@ const assignOutgoingMessageHeaders = (
   outgoing: http.OutgoingMessage,
   headers: Headers
 ) => {
-  if (typeof outgoing.setHeaders === 'function') {
-    outgoing.setHeaders(headers);
-  } else {
-    for (const [key, value] of headers) outgoing.setHeader(key, value);
+  // Preassemble array headers, mostly only for Set-Cookie
+  // We're avoiding `getSetCookie` since support is unclear in Node 18
+  const collection: Record<string, string | string[]> = {};
+  for (const [key, value] of headers) {
+    if (Array.isArray(collection[key])) {
+      collection[key].push(value);
+    } else if (collection[key] != undefined) {
+      collection[key] = [collection[key], value];
+    } else {
+      collection[key] = value;
+    }
+  }
+  // We don't use `setHeaders` due to a Bun bug (Fix: https://github.com/oven-sh/bun/pull/27050)
+  for (const key in collection) {
+    outgoing.setHeader(key, collection[key]);
   }
 };
 
