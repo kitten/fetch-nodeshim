@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.7
+
+### Patch Changes
+
+- Avoid `setHeaders` to increase consistency, fix `Set-Cookie` case for older Node versions, and work around bug in Bun <=1.3.9
+  Submitted by [@kitten](https://github.com/kitten) (See [#35](https://github.com/kitten/fetch-nodeshim/pull/35))
+
 ## 0.4.6
 
 ### Patch Changes
