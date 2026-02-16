@@ -33,7 +33,7 @@ const assignOutgoingMessageHeaders = (
   outgoing: http.OutgoingMessage,
   headers: Headers
 ) => {
-  // Preassemble array headers, mostly only for Set-Header
+  // Preassemble array headers, mostly only for Set-Cookie
   // We're avoiding `getSetCookie` since support is unclear in Node 18
   const collection: Record<string, string | string[]> = {};
   for (const [key, value] of headers) {
