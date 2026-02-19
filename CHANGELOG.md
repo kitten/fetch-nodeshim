@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.8
+
+### Patch Changes
+
+- ⚠️ Fix `fetch(new Request(...), init)` case, where `init` should take precedence over the request
+  Submitted by [@kitten](https://github.com/kitten) (See [#37](https://github.com/kitten/fetch-nodeshim/pull/37))
+
 ## 0.4.7
 
 ### Patch Changes
