@@ -71,15 +71,23 @@ const toRedirectOption = (
 
 /** Normalize methods and disallow special methods */
 const methodToHttpOption = (method: string | undefined): string => {
-  switch (method) {
+  const normalized = method?.toUpperCase();
+  switch (normalized) {
     case 'CONNECT':
     case 'TRACE':
     case 'TRACK':
       throw new TypeError(
         `Failed to construct 'Request': '${method}' HTTP method is unsupported.`
       );
+    case 'DELETE':
+    case 'GET':
+    case 'HEAD':
+    case 'OPTIONS':
+    case 'POST':
+    case 'PUT':
+      return normalized;
     default:
-      return method ? method.toUpperCase() : 'GET';
+      return method ?? 'GET';
   }
 };
 
@@ -138,16 +146,14 @@ function attachRefLifetime(body: Readable, socket: Socket): void {
 
 async function _fetch(
   input: string | URL | Request,
-  requestInit?: RequestInit
+  init?: RequestInit
 ): Promise<Response> {
   const initFromRequest = isRequest(input);
   const initUrl = initFromRequest ? input.url : input;
-  const initBody = initFromRequest ? input.body : requestInit?.body || null;
-  const signal = initFromRequest
-    ? input.signal
-    : requestInit?.signal || undefined;
+  const initBody = init?.body ?? (initFromRequest ? input.body : null);
+  const signal = init?.signal ?? (initFromRequest ? input.signal : undefined);
   const redirect = toRedirectOption(
-    initFromRequest ? input.redirect : requestInit?.redirect
+    init?.redirect ?? (initFromRequest ? input.redirect : undefined)
   );
 
   let requestUrl = new URL(initUrl);
@@ -155,14 +161,12 @@ async function _fetch(
   let redirects = 0;
 
   const requestHeaders = new Headers(
-    requestInit?.headers || (initFromRequest ? input.headers : undefined)
+    init?.headers ?? (initFromRequest ? input.headers : undefined)
   );
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
     timeout: 5_000,
-    method: methodToHttpOption(
-      initFromRequest ? input.method : requestInit?.method
-    ),
+    method: methodToHttpOption(initFromRequest ? input.method : init?.method),
     signal,
   } satisfies http.RequestOptions;
 
@@ -209,14 +213,14 @@ async function _fetch(
       incoming.socket.unref();
       incoming.on('error', destroy);
 
-      const init = {
+      const responseInit = {
         status: incoming.statusCode,
         statusText: incoming.statusMessage,
         headers: headersOfRawHeaders(incoming.rawHeaders),
       } satisfies ResponseInit;
 
-      if (isRedirectCode(init.status)) {
-        const location = init.headers.get('Location');
+      if (isRedirectCode(responseInit.status)) {
+        const location = responseInit.headers.get('Location');
         const locationURL =
           location != null ? parseURL(location, requestUrl) : null;
         if (redirect === 'error') {
@@ -227,7 +231,7 @@ async function _fetch(
           );
           return;
         } else if (redirect === 'manual' && location) {
-          init.headers.set('Location', locationURL?.href ?? location);
+          responseInit.headers.set('Location', locationURL?.href ?? location);
         } else if (redirect === 'follow') {
           if (locationURL === null) {
             reject(
@@ -247,8 +251,9 @@ async function _fetch(
           }
 
           if (
-            init.status === 303 ||
-            ((init.status === 301 || init.status === 302) && method === 'POST')
+            responseInit.status === 303 ||
+            ((responseInit.status === 301 || responseInit.status === 302) &&
+              method === 'POST')
           ) {
             requestBody = extractBody(null);
             requestOptions.method = 'GET';
@@ -272,11 +277,17 @@ async function _fetch(
       }
 
       let body: Readable | null = incoming;
-      const encoding = init.headers.get('Content-Encoding')?.toLowerCase();
-      if (method === 'HEAD' || init.status === 204 || init.status === 304) {
+      const encoding = responseInit.headers
+        .get('Content-Encoding')
+        ?.toLowerCase();
+      if (
+        method === 'HEAD' ||
+        responseInit.status === 204 ||
+        responseInit.status === 304
+      ) {
         body = null;
       } else if (encoding != null) {
-        init.headers.set('Content-Encoding', encoding);
+        responseInit.headers.set('Content-Encoding', encoding);
         body = pipeline(body, createContentDecoder(encoding), destroy);
         outgoing.on('error', destroy);
       }
@@ -288,7 +299,7 @@ async function _fetch(
       }
 
       resolve(
-        createResponse(body, init, {
+        createResponse(body, responseInit, {
           type: 'default',
           url: requestUrl.toString(),
           redirected: redirects > 0,
