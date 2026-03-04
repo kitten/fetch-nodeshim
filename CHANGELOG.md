@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.9
+
+### Patch Changes
+
+- Add configurable `connectTimeout` to override connection timeout. The default will now also be 30s if the request contains `text/html` in the `Accept` header
+  Submitted by [@kitten](https://github.com/kitten) (See [#39](https://github.com/kitten/fetch-nodeshim/pull/39))
+
 ## 0.4.8
 
 ### Patch Changes
