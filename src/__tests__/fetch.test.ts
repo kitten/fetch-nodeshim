@@ -67,6 +67,12 @@ describe(fetch, () => {
     await expect(() => fetch('http://localhost:50000/')).rejects.toThrow();
   }, 1_000);
 
+  it('should reject with error when connectTimeout is exceeded', async () => {
+    await expect(() =>
+      fetch('http://10.255.255.1/', { connectTimeout: 100 })
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Request timed out]`);
+  }, 5_000);
+
   it('should resolve into response', async () => {
     const response = await fetch(new URL('hello', baseURL));
     expect(response.url).toBe(`${baseURL}hello`);
