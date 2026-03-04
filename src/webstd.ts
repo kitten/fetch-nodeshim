@@ -1,11 +1,5 @@
 import * as buffer from 'node:buffer';
 
-declare global {
-  interface RequestInit {
-    connectTimeout?: number;
-  }
-}
-
 type Or<T, U> = void extends T ? U : T;
 
 export type HeadersInit =
