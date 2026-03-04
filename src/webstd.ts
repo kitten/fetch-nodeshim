@@ -1,5 +1,11 @@
 import * as buffer from 'node:buffer';
 
+declare global {
+  interface RequestInit {
+    connectTimeout?: number;
+  }
+}
+
 type Or<T, U> = void extends T ? U : T;
 
 export type HeadersInit =
@@ -56,6 +62,7 @@ if (typeof globalThis.File === 'undefined') {
 // Here, we have to account for global differences and split the overloads apart
 
 interface _RequestInit extends Or<RequestInit, globalThis.RequestInit> {
+  connectTimeout?: number;
   duplex?: 'half';
 }
 interface _ResponseInit extends Or<ResponseInit, globalThis.ResponseInit> {}

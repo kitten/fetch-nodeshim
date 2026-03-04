@@ -163,9 +163,15 @@ async function _fetch(
   const requestHeaders = new Headers(
     init?.headers ?? (initFromRequest ? input.headers : undefined)
   );
+
+  let DEFAULT_TIMEOUT = 5_000;
+  if (requestHeaders.get('accept')?.includes('text/html')) {
+    DEFAULT_TIMEOUT = 30_000;
+  }
+
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
-    timeout: 5_000,
+    timeout: init?.connectTimeout ?? DEFAULT_TIMEOUT,
     method: methodToHttpOption(initFromRequest ? input.method : init?.method),
     signal,
   } satisfies http.RequestOptions;
