@@ -201,6 +201,50 @@ describe(fetch, () => {
         headers: expect.objectContaining({ host: 'example.com' }),
       });
     });
+
+    it('should preserve header casing when headers are passed as a plain object', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: {
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+          'content-type': 'text/plain',
+        },
+      });
+      const { rawHeaders } = await response.json();
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+        'content-type': 'text/plain',
+      });
+    });
+
+    it('should preserve header casing when headers are passed as an array of tuples', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['Authorization', 'Bearer token'],
+        ],
+      });
+      const { rawHeaders } = await response.json();
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+      });
+    });
+
+    it('should lowercase header names when headers are passed as a Headers instance', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: new Headers({
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+        }),
+      });
+      const { rawHeaders } = await response.json();
+      expect(rawHeaders).toMatchObject({
+        'x-custom-header': 'abc',
+        authorization: 'Bearer token',
+      });
+    });
   });
 
   describe('redirects', () => {
