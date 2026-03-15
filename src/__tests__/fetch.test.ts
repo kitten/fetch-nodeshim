@@ -232,6 +232,17 @@ describe(fetch, () => {
       });
     });
 
+    it('should merge tuple headers with the same name into a combined value', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['X-Custom-Header', 'def'],
+        ],
+      });
+      const { headers } = await response.json();
+      expect(headers['x-custom-header']).toBe('abc, def');
+    });
+
     it('should lowercase header names when headers are passed as a Headers instance', async () => {
       const response = await fetch(new URL('inspect', baseURL), {
         headers: new Headers({
