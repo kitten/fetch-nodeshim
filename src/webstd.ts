@@ -1,11 +1,13 @@
 import * as buffer from 'node:buffer';
+import { HeadersLike } from './types';
+import { Headers } from './headers';
 
 type Or<T, U> = void extends T ? U : T;
 
 export type HeadersInit =
   | string[][]
   | Record<string, string | ReadonlyArray<string>>
-  | _Headers;
+  | HeadersLike;
 
 export type FormDataEntryValue = string | _File;
 
@@ -89,11 +91,6 @@ interface ResponseClass
   new (body?: BodyInit, init?: _ResponseInit): _Response;
 }
 
-interface _Headers extends Or<Headers, globalThis.Headers> {}
-interface HeadersClass extends Or<typeof Headers, typeof globalThis.Headers> {
-  new (init?: HeadersInit): _Headers;
-}
-
 interface _FormData
   extends Or<
     FormData & _Iterable<[string, FormDataEntryValue]>,
@@ -102,24 +99,24 @@ interface _FormData
 interface FormDataClass
   extends Or<typeof FormData, typeof globalThis.FormData> {}
 
+interface _Headers extends Or<Headers, globalThis.Headers> {}
+
 let _Request: RequestClass;
 let _Response: ResponseClass;
-let _Headers: HeadersClass;
 let _FormData: FormDataClass;
 if (typeof Request !== 'undefined') _Request = Request;
 if (typeof Response !== 'undefined') _Response = Response;
-if (typeof Headers !== 'undefined') _Headers = Headers;
 if (typeof FormData !== 'undefined') _FormData = FormData;
 
 export {
   type _RequestInit as RequestInit,
   type _ResponseInit as ResponseInit,
+  type _Headers as HeadersLike,
   _Blob as Blob,
   _File as File,
   _URL as URL,
   _URLSearchParams as URLSearchParams,
   _Request as Request,
   _Response as Response,
-  _Headers as Headers,
   _FormData as FormData,
 };

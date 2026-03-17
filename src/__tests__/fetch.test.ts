@@ -78,7 +78,6 @@ describe(fetch, () => {
     expect(response.url).toBe(`${baseURL}hello`);
     expect(response).toBeInstanceOf(Response);
     expect(response).toMatchObject({
-      headers: expect.any(Headers),
       body: expect.any(ReadableStream),
       bodyUsed: false,
       ok: true,
@@ -199,6 +198,61 @@ describe(fetch, () => {
       });
       expect(await response.json()).toMatchObject({
         headers: expect.objectContaining({ host: 'example.com' }),
+      });
+    });
+
+    it('should preserve header casing when headers are passed as a plain object', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: {
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+          'content-type': 'text/plain',
+        },
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+        'content-type': 'text/plain',
+      });
+    });
+
+    it('should preserve header casing when headers are passed as an array of tuples', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['Authorization', 'Bearer token'],
+        ],
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+      });
+    });
+
+    it('should merge tuple headers with the same name into a combined value', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['X-Custom-Header', 'def'],
+        ],
+      });
+      const { headers } = (await response.json()) as any;
+      expect(headers['x-custom-header']).toBe('abc, def');
+    });
+
+    it('should preserve header casing when headers are passed as a Headers instance', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: new Headers({
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+        }),
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
       });
     });
   });

@@ -4,13 +4,23 @@ import * as https from 'node:https';
 import * as http from 'node:http';
 import * as url from 'node:url';
 
+import { Headers } from './headers';
 import { extractBody } from './body';
 import { createContentDecoder } from './encoding';
-import { URL, Request, RequestInit, Response } from './webstd';
 import { getHttpsAgent, getHttpAgent } from './agent';
+import {
+  URL,
+  Request,
+  RequestInit,
+  Response,
+  HeadersInit,
+  HeadersLike,
+} from './webstd';
 
 /** Maximum allowed redirects (matching Chromium's limit) */
 const MAX_REDIRECTS = 20;
+
+const DEFAULT_TIMEOUT = 30_000;
 
 const parseURL = (input: string, base?: string | URL): URL | null => {
   try {
@@ -21,7 +31,7 @@ const parseURL = (input: string, base?: string | URL): URL | null => {
 };
 
 /** Convert Node.js raw headers array to Headers */
-const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
+const headersOfRawHeaders = (rawHeaders: readonly string[]): HeadersLike => {
   const headers = new Headers();
   for (let i = 0; i < rawHeaders.length; i += 2)
     headers.append(rawHeaders[i], rawHeaders[i + 1]);
@@ -31,16 +41,16 @@ const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
 /** Assign Headers to a Node.js OutgoingMessage (request) */
 const assignOutgoingMessageHeaders = (
   outgoing: http.OutgoingMessage,
-  headers: Headers
+  headers: HeadersInit
 ) => {
   // Preassemble array headers, mostly only for Set-Cookie
   // We're avoiding `getSetCookie` since support is unclear in Node 18
-  const collection: Record<string, string | string[]> = {};
-  for (const [key, value] of headers) {
+  const collection: Record<string, string | readonly string[]> = {};
+  for (const [key, value] of new Headers(headers)) {
     if (Array.isArray(collection[key])) {
       collection[key].push(value);
     } else if (collection[key] != undefined) {
-      collection[key] = [collection[key], value];
+      collection[key] = [collection[key] as string, value];
     } else {
       collection[key] = value;
     }
@@ -160,14 +170,8 @@ async function _fetch(
   let requestBody = extractBody(initBody);
   let redirects = 0;
 
-  const requestHeaders = new Headers(
-    init?.headers ?? (initFromRequest ? input.headers : undefined)
-  );
-
-  let DEFAULT_TIMEOUT = 5_000;
-  if (requestHeaders.get('accept')?.includes('text/html')) {
-    DEFAULT_TIMEOUT = 30_000;
-  }
+  const requestHeaders =
+    init?.headers ?? (initFromRequest ? input.headers : undefined);
 
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
@@ -263,7 +267,6 @@ async function _fetch(
           ) {
             requestBody = extractBody(null);
             requestOptions.method = 'GET';
-            requestHeaders.delete('Content-Length');
           } else if (
             requestBody.body != null &&
             requestBody.contentLength == null
@@ -315,23 +318,25 @@ async function _fetch(
 
     outgoing.on('error', destroy);
 
-    if (!requestHeaders.has('Accept')) {
-      requestHeaders.set('Accept', '*/*');
+    if (requestHeaders) {
+      assignOutgoingMessageHeaders(outgoing, requestHeaders);
     }
-    if (!requestHeaders.has('Content-Type') && requestBody.contentType) {
-      requestHeaders.set('Content-Type', requestBody.contentType);
+
+    if (!outgoing.hasHeader('Accept')) {
+      outgoing.setHeader('Accept', '*/*');
+    }
+    if (!outgoing.hasHeader('Content-Type') && requestBody.contentType) {
+      outgoing.setHeader('Content-Type', requestBody.contentType);
     }
 
     if (
       requestBody.body == null &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH')
     ) {
-      requestHeaders.set('Content-Length', '0');
+      outgoing.setHeader('Content-Length', '0');
     } else if (requestBody.body != null && requestBody.contentLength != null) {
-      requestHeaders.set('Content-Length', `${requestBody.contentLength}`);
+      outgoing.setHeader('Content-Length', `${requestBody.contentLength}`);
     }
-
-    assignOutgoingMessageHeaders(outgoing, requestHeaders);
 
     if (requestBody.body == null) {
       outgoing.end();
