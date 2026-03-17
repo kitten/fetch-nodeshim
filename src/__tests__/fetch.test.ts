@@ -210,7 +210,7 @@ describe(fetch, () => {
           'content-type': 'text/plain',
         },
       });
-      const { rawHeaders } = await response.json();
+      const { rawHeaders } = (await response.json()) as any;
       expect(rawHeaders).toMatchObject({
         'X-Custom-Header': 'abc',
         Authorization: 'Bearer token',
@@ -225,7 +225,7 @@ describe(fetch, () => {
           ['Authorization', 'Bearer token'],
         ],
       });
-      const { rawHeaders } = await response.json();
+      const { rawHeaders } = (await response.json()) as any;
       expect(rawHeaders).toMatchObject({
         'X-Custom-Header': 'abc',
         Authorization: 'Bearer token',
@@ -239,7 +239,7 @@ describe(fetch, () => {
           ['X-Custom-Header', 'def'],
         ],
       });
-      const { headers } = await response.json();
+      const { headers } = (await response.json()) as any;
       expect(headers['x-custom-header']).toBe('abc, def');
     });
 
@@ -250,7 +250,7 @@ describe(fetch, () => {
           Authorization: 'Bearer token',
         }),
       });
-      const { rawHeaders } = await response.json();
+      const { rawHeaders } = (await response.json()) as any;
       expect(rawHeaders).toMatchObject({
         'x-custom-header': 'abc',
         authorization: 'Bearer token',
