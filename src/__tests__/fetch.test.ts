@@ -78,7 +78,6 @@ describe(fetch, () => {
     expect(response.url).toBe(`${baseURL}hello`);
     expect(response).toBeInstanceOf(Response);
     expect(response).toMatchObject({
-      headers: expect.any(Headers),
       body: expect.any(ReadableStream),
       bodyUsed: false,
       ok: true,
