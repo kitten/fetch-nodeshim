@@ -4,17 +4,18 @@ import * as https from 'node:https';
 import * as http from 'node:http';
 import * as url from 'node:url';
 
+import { Headers } from './headers';
 import { extractBody } from './body';
 import { createContentDecoder } from './encoding';
+import { getHttpsAgent, getHttpAgent } from './agent';
 import {
   URL,
   Request,
   RequestInit,
   Response,
   HeadersInit,
-  Headers,
+  HeadersLike,
 } from './webstd';
-import { getHttpsAgent, getHttpAgent } from './agent';
 
 /** Maximum allowed redirects (matching Chromium's limit) */
 const MAX_REDIRECTS = 20;
@@ -29,14 +30,13 @@ const parseURL = (input: string, base?: string | URL): URL | null => {
   }
 };
 
-const isHeaders = (x: unknown): x is Headers =>
+const isHeaders = (x: unknown): x is HeadersLike =>
   x != null &&
-  typeof x === 'object' &&
-  'append' in x &&
-  typeof x.append === 'function';
+  (x instanceof Headers ||
+    (typeof x === 'object' && 'append' in x && typeof x.append === 'function'));
 
 /** Convert Node.js raw headers array to Headers */
-const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
+const headersOfRawHeaders = (rawHeaders: readonly string[]): HeadersLike => {
   const headers = new Headers();
   for (let i = 0; i < rawHeaders.length; i += 2)
     headers.append(rawHeaders[i], rawHeaders[i + 1]);
@@ -52,7 +52,7 @@ const assignOutgoingMessageHeaders = (
   // We're avoiding `getSetCookie` since support is unclear in Node 18
   let collection: Record<string, string | readonly string[]>;
   if (!Array.isArray(headers) && !isHeaders(headers)) {
-    collection = headers;
+    collection = headers as Record<string, string | readonly string[]>;
   } else {
     collection = {};
     for (const [key, value] of headers) {
