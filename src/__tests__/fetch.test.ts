@@ -243,7 +243,7 @@ describe(fetch, () => {
       expect(headers['x-custom-header']).toBe('abc, def');
     });
 
-    it('should lowercase header names when headers are passed as a Headers instance', async () => {
+    it('should preserve header casing when headers are passed as a Headers instance', async () => {
       const response = await fetch(new URL('inspect', baseURL), {
         headers: new Headers({
           'X-Custom-Header': 'abc',
@@ -252,8 +252,8 @@ describe(fetch, () => {
       });
       const { rawHeaders } = (await response.json()) as any;
       expect(rawHeaders).toMatchObject({
-        'x-custom-header': 'abc',
-        authorization: 'Bearer token',
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
       });
     });
   });

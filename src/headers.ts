@@ -10,9 +10,6 @@ interface HeadersInternals {
   canonical: Map<string, string>;
 }
 
-const normalizeValue = (value: string): string =>
-  `${value}`.replace(/^[\t\n\r ]+|[\t\n\r ]+$/g, '');
-
 const validateName = (name: string): void => {
   // https://fetch.spec.whatwg.org/#concept-header-name
   // token = 1*tchar per RFC 7230
@@ -27,6 +24,12 @@ const validateValue = (name: string, value: string): void => {
   if (/[\0\r\n]/.test(value)) {
     throw new TypeError(`Invalid header value for "${name}"`);
   }
+};
+
+const normalizeValue = (name: string, value: string): string => {
+  const normalized = `${value}`.replace(/^[\t\n\r ]+|[\t\n\r ]+$/g, '');
+  validateValue(name, normalized);
+  return normalized;
 };
 
 type HeadersInput =
@@ -68,8 +71,7 @@ const fillFromInit = (
           'Header init must be an iterable of [name, value] pairs'
         );
       validateName(pair[0]);
-      const value = normalizeValue(pair[1]);
-      validateValue(pair[0], value);
+      const value = normalizeValue(pair[0], pair[1]);
       addEntry(list, canonical, pair[0], value);
     }
   } else if (Symbol.iterator in Object(init)) {
@@ -79,8 +81,7 @@ const fillFromInit = (
           'Header init must be an iterable of [name, value] pairs'
         );
       validateName(pair[0]);
-      const value = normalizeValue(pair[1]);
-      validateValue(pair[0], value);
+      const value = normalizeValue(pair[0], pair[1]);
       addEntry(list, canonical, pair[0], value);
     }
   } else {
@@ -90,13 +91,11 @@ const fillFromInit = (
       const values = record[name];
       if (Array.isArray(values)) {
         for (const v of values) {
-          const value = normalizeValue(v);
-          validateValue(name, value);
+          const value = normalizeValue(name, v);
           addEntry(list, canonical, name, value);
         }
       } else {
-        const value = normalizeValue(values as string);
-        validateValue(name, value);
+        const value = normalizeValue(name, values as string);
         addEntry(list, canonical, name, value);
       }
     }
@@ -148,29 +147,32 @@ export class Headers implements HeadersLike {
   }
 
   append(name: string, value: string): void {
+    const { list, canonical } = this[_implSymbol];
     validateName(name);
-    value = normalizeValue(value);
-    validateValue(name, value);
-    addEntry(this[_implSymbol].list, this[_implSymbol].canonical, name, value);
+    value = normalizeValue(name, value);
+    addEntry(list, canonical, name, value);
   }
 
   delete(name: string): void {
+    const { list, canonical } = this[_implSymbol];
     validateName(name);
     const lower = name.toLowerCase();
-    this[_implSymbol].list = this[_implSymbol].list.filter(
-      e => e[0].toLowerCase() !== lower
-    );
-    this[_implSymbol].canonical.delete(lower);
+    canonical.delete(lower);
+    for (let idx = 0; idx < list.length; idx++) {
+      if (list[idx][0] === lower) {
+        list.splice(idx, 1);
+        idx--;
+      }
+    }
   }
 
   get(name: string): string | null {
     validateName(name);
     const lower = name.toLowerCase();
     const values: string[] = [];
-    for (const [n, v] of this[_implSymbol].list) {
-      if (n.toLowerCase() === lower) values.push(v);
-    }
-    return values.length ? values.join(', ') : null;
+    for (const pair of this[_implSymbol].list)
+      if (pair[0].toLowerCase() === lower) values.push(pair[1]);
+    return values.length > 0 ? values.join(', ') : null;
   }
 
   has(name: string): boolean {
@@ -179,12 +181,10 @@ export class Headers implements HeadersLike {
   }
 
   set(name: string, value: string): void {
-    validateName(name);
-    value = normalizeValue(value);
-    validateValue(name, value);
-    const lower = name.toLowerCase();
     const { list, canonical } = this[_implSymbol];
-    // Preserve canonical name if it already exists, otherwise set it
+    validateName(name);
+    value = normalizeValue(name, value);
+    const lower = name.toLowerCase();
     if (!canonical.has(lower)) canonical.set(lower, name);
     const canonicalName = canonical.get(lower)!;
     let found = false;
@@ -225,25 +225,25 @@ export class Headers implements HeadersLike {
   *keys(): IterableIterator<string> {
     const { list, canonical } = this[_implSymbol];
     const seen = new Set<string>();
-    for (const [name] of sortAndCombine(list, canonical)) {
-      if (!seen.has(name)) {
-        seen.add(name);
-        yield name;
+    for (const pair of sortAndCombine(list, canonical)) {
+      if (!seen.has(pair[0])) {
+        seen.add(pair[0]);
+        yield pair[0];
       }
     }
   }
 
   *values(): IterableIterator<string> {
     const { list, canonical } = this[_implSymbol];
-    for (const [, value] of sortAndCombine(list, canonical)) {
-      yield value;
+    for (const pair of sortAndCombine(list, canonical)) {
+      yield pair[1];
     }
   }
 
   *entries(): IterableIterator<[string, string]> {
     const { list, canonical } = this[_implSymbol];
-    for (const entry of sortAndCombine(list, canonical)) {
-      yield entry;
+    for (const pair of sortAndCombine(list, canonical)) {
+      yield pair;
     }
   }
 
@@ -252,7 +252,11 @@ export class Headers implements HeadersLike {
   }
 }
 
-if (typeof globalThis.Headers === 'function') {
+Headers[_implSymbol] = Headers;
+if (
+  typeof globalThis.Headers === 'function' &&
+  !globalThis.Headers[_implSymbol]
+) {
   Object.setPrototypeOf(Headers.prototype, globalThis.Headers.prototype);
 }
 
