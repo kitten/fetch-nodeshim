@@ -30,11 +30,6 @@ const parseURL = (input: string, base?: string | URL): URL | null => {
   }
 };
 
-const isHeaders = (x: unknown): x is HeadersLike =>
-  x != null &&
-  (x instanceof Headers ||
-    (typeof x === 'object' && 'append' in x && typeof x.append === 'function'));
-
 /** Convert Node.js raw headers array to Headers */
 const headersOfRawHeaders = (rawHeaders: readonly string[]): HeadersLike => {
   const headers = new Headers();
@@ -50,19 +45,14 @@ const assignOutgoingMessageHeaders = (
 ) => {
   // Preassemble array headers, mostly only for Set-Cookie
   // We're avoiding `getSetCookie` since support is unclear in Node 18
-  let collection: Record<string, string | readonly string[]>;
-  if (!Array.isArray(headers) && !isHeaders(headers)) {
-    collection = headers as Record<string, string | readonly string[]>;
-  } else {
-    collection = {};
-    for (const [key, value] of headers) {
-      if (Array.isArray(collection[key])) {
-        collection[key].push(value);
-      } else if (collection[key] != undefined) {
-        collection[key] = [collection[key] as string, value];
-      } else {
-        collection[key] = value;
-      }
+  const collection: Record<string, string | readonly string[]> = {};
+  for (const [key, value] of new Headers(headers)) {
+    if (Array.isArray(collection[key])) {
+      collection[key].push(value);
+    } else if (collection[key] != undefined) {
+      collection[key] = [collection[key] as string, value];
+    } else {
+      collection[key] = value;
     }
   }
   // We don't use `setHeaders` due to a Bun bug (Fix: https://github.com/oven-sh/bun/pull/27050)
