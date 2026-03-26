@@ -55,7 +55,11 @@ const assignOutgoingMessageHeaders = (
     collection = headers;
   } else {
     collection = {};
-    for (const [key, value] of headers) {
+    const canonicalNames = new Map();
+    for (const [name, value] of headers) {
+      const lowerKey = name.toLowerCase();
+      let key = canonicalNames.get(lowerKey) ?? name;
+      if (!canonicalNames.has(lowerKey)) canonicalNames.set(lowerKey, name);
       if (Array.isArray(collection[key])) {
         collection[key].push(value);
       } else if (collection[key] != undefined) {
