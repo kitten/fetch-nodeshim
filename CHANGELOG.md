@@ -1,5 +1,12 @@
 # minifetch
 
+## 0.4.10
+
+### Patch Changes
+
+- Preserve casing of headers when they're passed as non-Headers input, i.e. as tuple list or dictionary
+  Submitted by [@kitten](https://github.com/kitten) (See [#41](https://github.com/kitten/fetch-nodeshim/pull/41))
+
 ## 0.4.9
 
 ### Patch Changes
