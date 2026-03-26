@@ -59,6 +59,9 @@ describe('fetch via HTTP proxy', () => {
       headers: expect.objectContaining({
         connection: 'keep-alive',
       }),
+      rawHeaders: expect.objectContaining({
+        Connection: 'keep-alive',
+      }),
       inspect: true,
       method: 'GET',
       url: '/inspect',

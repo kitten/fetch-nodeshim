@@ -442,12 +442,18 @@ export default class TestServer {
         body += c;
       });
       request.on('end', () => {
+        // Convert rawHeaders array to an object preserving original casing
+        const rawHeadersObj = {};
+        for (let i = 0; i < request.rawHeaders.length; i += 2) {
+          rawHeadersObj[request.rawHeaders[i]] = request.rawHeaders[i + 1];
+        }
         res.end(
           JSON.stringify({
             inspect: true,
             method: request.method,
             url: request.url,
             headers: request.headers,
+            rawHeaders: rawHeadersObj,
             body,
           })
         );

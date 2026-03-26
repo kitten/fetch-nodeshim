@@ -201,6 +201,72 @@ describe(fetch, () => {
         headers: expect.objectContaining({ host: 'example.com' }),
       });
     });
+
+    it('should preserve header casing when headers are passed as a plain object', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: {
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+          'content-type': 'text/plain',
+        },
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+        'content-type': 'text/plain',
+      });
+    });
+
+    it('should preserve header casing when headers are passed as an array of tuples', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['Authorization', 'Bearer token'],
+        ],
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'X-Custom-Header': 'abc',
+        Authorization: 'Bearer token',
+      });
+    });
+
+    it('should merge tuple headers with the same name into a combined value', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['X-Custom-Header', 'def'],
+        ],
+      });
+      const { headers } = (await response.json()) as any;
+      expect(headers['x-custom-header']).toBe('abc, def');
+    });
+
+    it('should merge tuple headers with the same name but different casing into a combined value', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: [
+          ['X-Custom-Header', 'abc'],
+          ['X-custom-header', 'def'],
+        ],
+      });
+      const { headers } = (await response.json()) as any;
+      expect(headers['x-custom-header']).toBe('abc, def');
+    });
+
+    it('should lowercase header names when headers are passed as a Headers instance', async () => {
+      const response = await fetch(new URL('inspect', baseURL), {
+        headers: new Headers({
+          'X-Custom-Header': 'abc',
+          Authorization: 'Bearer token',
+        }),
+      });
+      const { rawHeaders } = (await response.json()) as any;
+      expect(rawHeaders).toMatchObject({
+        'x-custom-header': 'abc',
+        authorization: 'Bearer token',
+      });
+    });
   });
 
   describe('redirects', () => {
@@ -237,6 +303,28 @@ describe(fetch, () => {
           method: outputMethod,
           body: outputMethod === 'GET' ? '' : 'a=1',
         });
+      }
+    );
+
+    it.each([[301], [302], [303]])(
+      'should remove body, Content-Length, and Content-Type headers on %d redirect that changes method to GET',
+      async code => {
+        const response = await fetch(new URL(`redirect/${code}`, baseURL), {
+          method: 'POST',
+          body: 'a=1',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': '3',
+          },
+        });
+        expect(response.url).toBe(`${baseURL}inspect`);
+        const inspect: any = await response.json();
+        expect(inspect).toMatchObject({
+          method: 'GET',
+          body: '',
+        });
+        expect(inspect.headers).not.toHaveProperty('content-type');
+        expect(inspect.headers).not.toHaveProperty('content-length');
       }
     );
 
