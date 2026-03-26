@@ -1,6 +1,6 @@
 {
   "name": "fetch-nodeshim",
-  "version": "0.4.9",
+  "version": "0.4.10",
   "description": "A Node.js fetch shim using built-in Request, Response, and Headers (but without native fetch)",
   "author": "Phil Pluckthun <phil@kitten.sh>",
   "source": "./src/index.ts",
