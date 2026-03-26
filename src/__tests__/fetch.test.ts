@@ -306,6 +306,28 @@ describe(fetch, () => {
       }
     );
 
+    it.each([[301], [302], [303]])(
+      'should remove body, Content-Length, and Content-Type headers on %d redirect that changes method to GET',
+      async code => {
+        const response = await fetch(new URL(`redirect/${code}`, baseURL), {
+          method: 'POST',
+          body: 'a=1',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Length': '3',
+          },
+        });
+        expect(response.url).toBe(`${baseURL}inspect`);
+        const inspect: any = await response.json();
+        expect(inspect).toMatchObject({
+          method: 'GET',
+          body: '',
+        });
+        expect(inspect.headers).not.toHaveProperty('content-type');
+        expect(inspect.headers).not.toHaveProperty('content-length');
+      }
+    );
+
     it('should not follow non-GET redirect if body is a readable stream', async () => {
       await expect(() =>
         fetch(new URL('redirect/307', baseURL), {

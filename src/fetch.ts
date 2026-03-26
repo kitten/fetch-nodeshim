@@ -32,8 +32,7 @@ const parseURL = (input: string, base?: string | URL): URL | null => {
 const isHeaders = (x: unknown): x is Headers =>
   x != null &&
   typeof x === 'object' &&
-  'append' in x &&
-  typeof x.append === 'function';
+  (('append' in x && typeof x.append === 'function') || x instanceof Headers);
 
 /** Convert Node.js raw headers array to Headers */
 const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
@@ -43,18 +42,20 @@ const headersOfRawHeaders = (rawHeaders: readonly string[]): Headers => {
   return headers;
 };
 
+type HeadersDict = Record<string, string | readonly string[]>;
+
 /** Assign Headers to a Node.js OutgoingMessage (request) */
 const assignOutgoingMessageHeaders = (
   outgoing: http.OutgoingMessage,
   headers: HeadersInit
-) => {
+): HeadersDict => {
   // Preassemble array headers, mostly only for Set-Cookie
   // We're avoiding `getSetCookie` since support is unclear in Node 18
-  let collection: Record<string, string | readonly string[]>;
+  let collection: HeadersDict;
   if (!Array.isArray(headers) && !isHeaders(headers)) {
     collection = headers;
   } else {
-    collection = {};
+    collection = Object.create(null);
     const canonicalNames = new Map();
     for (const [name, value] of headers) {
       const lowerKey = name.toLowerCase();
@@ -72,6 +73,19 @@ const assignOutgoingMessageHeaders = (
   // We don't use `setHeaders` due to a Bun bug (Fix: https://github.com/oven-sh/bun/pull/27050)
   for (const key in collection) {
     outgoing.setHeader(key, collection[key]);
+  }
+  return collection;
+};
+
+const stripRedirectHeaders = (headers: HeadersDict | undefined) => {
+  if (headers) {
+    for (const key in headers) {
+      switch (key.toLowerCase()) {
+        case 'content-length':
+        case 'content-type':
+          delete headers[key];
+      }
+    }
   }
 };
 
@@ -184,7 +198,7 @@ async function _fetch(
   let requestBody = extractBody(initBody);
   let redirects = 0;
 
-  const requestHeaders =
+  let requestHeaders =
     init?.headers ?? (initFromRequest ? input.headers : undefined);
 
   const requestOptions = {
@@ -281,6 +295,7 @@ async function _fetch(
           ) {
             requestBody = extractBody(null);
             requestOptions.method = 'GET';
+            stripRedirectHeaders(requestHeaders as HeadersDict);
           } else if (
             requestBody.body != null &&
             requestBody.contentLength == null
@@ -333,7 +348,7 @@ async function _fetch(
     outgoing.on('error', destroy);
 
     if (requestHeaders) {
-      assignOutgoingMessageHeaders(outgoing, requestHeaders);
+      requestHeaders = assignOutgoingMessageHeaders(outgoing, requestHeaders);
     }
 
     if (!outgoing.hasHeader('Accept')) {
