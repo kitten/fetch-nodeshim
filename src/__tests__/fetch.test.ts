@@ -119,6 +119,58 @@ describe(fetch, () => {
     });
   });
 
+  describe('GET and HEAD body validation', () => {
+    it.each(['GET', 'HEAD', 'get', 'head', undefined])(
+      'should reject init bodies for method %s before sending',
+      async method => {
+        const onRequest = vi.fn();
+        local.server.on('request', onRequest);
+        for (const body of ['test', '']) {
+          for (const input of [
+            new URL('inspect', baseURL),
+            new Request(new URL('inspect', baseURL)),
+          ]) {
+            await expect(fetch(input, { method, body })).rejects.toThrow(
+              TypeError
+            );
+          }
+        }
+        expect(onRequest).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each(['GET', 'HEAD', 'get', 'head'])(
+      'should reject an inherited body when overriding to %s',
+      async method => {
+        const request = new Request(new URL('inspect', baseURL), {
+          method: 'POST',
+          body: 'test',
+        });
+        const onRequest = vi.fn();
+        local.server.on('request', onRequest);
+        for (const body of [undefined, null, '']) {
+          await expect(fetch(request, { method, body })).rejects.toThrow(
+            TypeError
+          );
+        }
+        expect(onRequest).not.toHaveBeenCalled();
+        expect(request.bodyUsed).toBe(false);
+      }
+    );
+
+    it.each(['GET', 'HEAD'])(
+      'should allow a null body for %s',
+      async method => {
+        const response = await fetch(new Request(new URL('inspect', baseURL)), {
+          method,
+          body: null,
+        });
+        expect(response.status).toBe(200);
+        await response.text();
+      }
+    );
+  });
+
   describe('request headers', () => {
     it('should send request with custom headers', async () => {
       const response = await fetch(new URL('inspect', baseURL), {
@@ -131,6 +183,7 @@ describe(fetch, () => {
 
     it('should send custom Content-Type with body', async () => {
       const response = await fetch(new URL('inspect', baseURL), {
+        method: 'POST',
         headers: { 'content-type': 'some/magic' },
         body: 'test',
       });
