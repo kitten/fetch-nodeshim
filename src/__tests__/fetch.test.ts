@@ -135,6 +135,7 @@ describe(fetch, () => {
             );
           }
         }
+        local.server.off('request', onRequest);
         expect(onRequest).not.toHaveBeenCalled();
       }
     );
@@ -153,6 +154,7 @@ describe(fetch, () => {
             TypeError
           );
         }
+        local.server.off('request', onRequest);
         expect(onRequest).not.toHaveBeenCalled();
         expect(request.bodyUsed).toBe(false);
       }
@@ -350,6 +352,20 @@ describe(fetch, () => {
         expect(response.headers.get('X-Inspect')).toBe('inspect');
       }
     );
+
+    it('should preserve HEAD through a 303 redirect', async () => {
+      const methods: string[] = [];
+      const onRequest = request => methods.push(request.method!);
+      local.server.on('request', onRequest);
+      const response = await fetch(new URL('redirect/303', baseURL), {
+        method: 'HEAD',
+      });
+      local.server.off('request', onRequest);
+      expect(methods).toEqual(['HEAD', 'HEAD']);
+      expect(response.redirected).toBe(true);
+      expect(response.body).toBeNull();
+      expect(await response.text()).toBe('');
+    });
 
     it('should follow redirect chain', async () => {
       const response = await fetch(new URL('redirect/chain', baseURL));
