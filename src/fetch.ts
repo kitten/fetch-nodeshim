@@ -296,7 +296,9 @@ async function _fetch(
           }
 
           if (
-            responseInit.status === 303 ||
+            (responseInit.status === 303 &&
+              method !== 'GET' &&
+              method !== 'HEAD') ||
             ((responseInit.status === 301 || responseInit.status === 302) &&
               method === 'POST')
           ) {
