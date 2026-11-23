@@ -6,6 +6,7 @@ import FormDataPolyfill from 'form-data';
 import { ReadableStream } from 'node:stream/web';
 import stream from 'node:stream';
 import vm from 'node:vm';
+import * as zlib from 'node:zlib';
 
 import TestServer from './utils/server.js';
 import { fetch } from '../fetch';
@@ -602,6 +603,55 @@ describe(fetch, () => {
   });
 
   describe('content encoding', () => {
+    it.each([
+      'gzip, br',
+      'br, gzip',
+      ' GZip , BR ',
+      'gzip, gzip',
+      'deflate, gzip',
+    ])('should decode stacked encodings: %s', async encoding => {
+      let body = Buffer.from('hello world');
+      for (const coding of encoding
+        .toLowerCase()
+        .split(',')
+        .map(value => value.trim())) {
+        body =
+          coding === 'br'
+            ? zlib.brotliCompressSync(body)
+            : coding === 'deflate'
+              ? zlib.deflateSync(body)
+              : zlib.gzipSync(body);
+      }
+      const url = local.mockResponse((_req, res) => {
+        res.setHeader('Content-Encoding', encoding);
+        res.end(body);
+      });
+      const response = await fetch(url);
+      expect(await response.text()).toBe('hello world');
+    });
+
+    it.each(['unknown, gzip', 'gzip, unknown'])(
+      'should preserve bytes for unsupported encoding lists: %s',
+      async encoding => {
+        const body = zlib.gzipSync('hello world');
+        const url = local.mockResponse((_req, res) => {
+          res.setHeader('Content-Encoding', encoding);
+          res.end(body);
+        });
+        const response = await fetch(url);
+        expect(Buffer.from(await response.arrayBuffer())).toEqual(body);
+      }
+    );
+
+    it('should reject when an inner encoding is corrupt', async () => {
+      const url = local.mockResponse((_req, res) => {
+        res.setHeader('Content-Encoding', 'gzip, br');
+        res.end(zlib.brotliCompressSync(Buffer.from('invalid gzip')));
+      });
+      const response = await fetch(url);
+      await expect(response.text()).rejects.toThrow();
+    });
+
     it('should decompress gzip response', async () => {
       const response = await fetch(new URL('gzip', baseURL));
       expect(response.headers.get('content-type')).toBe('text/plain');

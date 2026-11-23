@@ -1,4 +1,4 @@
-import { PassThrough, Transform, TransformCallback } from 'node:stream';
+import { Transform, TransformCallback } from 'node:stream';
 import * as zlib from 'node:zlib';
 
 /** @see https://www.rfc-editor.org/rfc/rfc9112.html#section-7.2 */
@@ -46,7 +46,7 @@ class InflateStream extends Transform {
   }
 }
 
-export const createContentDecoder = (encoding: Encoding | {}) => {
+const createContentDecoder = (encoding: Encoding | {}) => {
   // See: https://github.com/nodejs/undici/blob/008187b/lib/web/fetch/index.js#L2138-L2160
   switch (encoding) {
     case 'br':
@@ -67,6 +67,20 @@ export const createContentDecoder = (encoding: Encoding | {}) => {
         finishFlush: zlib.constants.Z_SYNC_FLUSH,
       });
     default:
-      return new PassThrough();
+      return null;
   }
+};
+
+export const createContentDecoders = (encoding: string): Transform[] => {
+  const decoders: Transform[] = [];
+  for (const coding of encoding.split(',').reverse()) {
+    const decoder = createContentDecoder(coding.trim());
+    if (!decoder) {
+      // Unsupported lists must leave the entire body untouched.
+      for (const decoder of decoders) decoder.destroy();
+      return [];
+    }
+    decoders.push(decoder);
+  }
+  return decoders;
 };
