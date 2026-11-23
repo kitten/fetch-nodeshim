@@ -204,7 +204,9 @@ async function _fetch(
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
     timeout: init?.connectTimeout ?? DEFAULT_TIMEOUT,
-    method: methodToHttpOption(initFromRequest ? input.method : init?.method),
+    method: methodToHttpOption(
+      init?.method ?? (initFromRequest ? input.method : undefined)
+    ),
     signal,
   } satisfies http.RequestOptions;
 
@@ -365,6 +367,12 @@ async function _fetch(
       outgoing.setHeader('Content-Length', '0');
     } else if (requestBody.body != null && requestBody.contentLength != null) {
       outgoing.setHeader('Content-Length', `${requestBody.contentLength}`);
+    } else if (
+      requestBody.body != null &&
+      !outgoing.hasHeader('Content-Length') &&
+      !outgoing.hasHeader('Transfer-Encoding')
+    ) {
+      outgoing.setHeader('Transfer-Encoding', 'chunked');
     }
 
     if (requestBody.body == null) {
