@@ -20,6 +20,7 @@ import { getHttpsAgent, getHttpAgent } from './agent';
 const MAX_REDIRECTS = 20;
 
 const DEFAULT_TIMEOUT = 30_000;
+const DEFAULT_RESPONSE_TIMEOUT = 300_000;
 
 const parseURL = (input: string, base?: string | URL): URL | null => {
   try {
@@ -247,6 +248,27 @@ async function _fetch(
         destroy(error);
       }
     });
+
+    if (init?.connectTimeout == null) {
+      outgoing.once('socket', socket => {
+        const onConnected = () => {
+          if (!outgoing.destroyed) {
+            outgoing.setTimeout(DEFAULT_RESPONSE_TIMEOUT);
+          }
+        };
+        if (
+          outgoing.reusedSocket ||
+          (requestOptions.protocol === 'http:' && !socket.connecting)
+        ) {
+          onConnected();
+        } else {
+          socket.once(
+            requestOptions.protocol === 'https:' ? 'secureConnect' : 'connect',
+            onConnected
+          );
+        }
+      });
+    }
 
     outgoing.on('response', _incoming => {
       if (signal?.aborted) {

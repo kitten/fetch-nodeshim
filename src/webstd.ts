@@ -56,6 +56,7 @@ if (typeof globalThis.File === 'undefined') {
 // Here, we have to account for global differences and split the overloads apart
 
 interface _RequestInit extends Or<RequestInit, globalThis.RequestInit> {
+  /** Overrides the 30s initial and 300s connected socket idle timeouts. Zero disables both. */
   connectTimeout?: number;
   duplex?: 'half';
 }
