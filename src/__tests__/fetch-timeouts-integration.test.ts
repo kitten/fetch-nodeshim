@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Socket } from 'node:net';
-import * as http from 'node:http';
+import http from 'node:http';
 import { once } from 'node:events';
 import { Server as ProxyServer } from 'proxy-chain';
 import { fetch } from '../fetch';
@@ -9,8 +9,10 @@ describe('fetch timeouts with real sockets', () => {
   let server: http.Server;
   let url: string;
   const clientSockets = new Set<Socket>();
+  const originalAgent = http.globalAgent;
 
   beforeEach(async () => {
+    http.globalAgent = new http.Agent({ keepAlive: true });
     vi.stubEnv('HTTP_PROXY', '');
     vi.stubEnv('HTTPS_PROXY', '');
     vi.stubEnv('http_proxy', '');
@@ -42,6 +44,8 @@ describe('fetch timeouts with real sockets', () => {
   });
 
   afterEach(async () => {
+    http.globalAgent.destroy();
+    http.globalAgent = originalAgent;
     for (const socket of clientSockets) socket.destroy();
     clientSockets.clear();
     server.closeAllConnections();
