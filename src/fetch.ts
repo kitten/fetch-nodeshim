@@ -194,6 +194,13 @@ async function _fetch(
     init?.redirect ?? (initFromRequest ? input.redirect : undefined)
   );
 
+  const method = methodToHttpOption(
+    init?.method ?? (initFromRequest ? input.method : undefined)
+  );
+  if ((method === 'GET' || method === 'HEAD') && initBody != null) {
+    throw new TypeError('Request with GET/HEAD method cannot have body.');
+  }
+
   let requestUrl = new URL(initUrl);
   let requestBody = extractBody(initBody);
   let redirects = 0;
@@ -204,9 +211,7 @@ async function _fetch(
   const requestOptions = {
     ...urlToHttpOptions(requestUrl),
     timeout: init?.connectTimeout ?? DEFAULT_TIMEOUT,
-    method: methodToHttpOption(
-      init?.method ?? (initFromRequest ? input.method : undefined)
-    ),
+    method,
     signal,
   } satisfies http.RequestOptions;
 
