@@ -139,6 +139,25 @@ describe(fetch, () => {
       });
     });
 
+    it.each([
+      ['GET', 'POST', 'init'],
+      ['PUT', 'DELETE', undefined],
+      ['PUT', undefined, undefined],
+    ])(
+      'should use init method %s -> %s and preserve body',
+      async (method, override, body) => {
+        const request = new Request(new URL('inspect', baseURL), {
+          method,
+          body: method === 'GET' ? undefined : 'request',
+        });
+        const response = await fetch(request, { method: override, body });
+        expect(await response.json()).toMatchObject({
+          method: override ?? method,
+          body: body ?? 'request',
+        });
+      }
+    );
+
     it('should prefer init headers when Request is passed', async () => {
       const request = new Request(new URL('inspect', baseURL), {
         headers: { 'x-custom-header': 'abc' },
