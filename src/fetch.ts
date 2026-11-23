@@ -5,7 +5,7 @@ import * as http from 'node:http';
 import * as url from 'node:url';
 
 import { extractBody } from './body';
-import { createContentDecoder } from './encoding';
+import { createContentDecoders } from './encoding';
 import {
   URL,
   Request,
@@ -326,7 +326,11 @@ async function _fetch(
         body = null;
       } else if (encoding != null) {
         responseInit.headers.set('Content-Encoding', encoding);
-        body = pipeline(body, createContentDecoder(encoding), destroy);
+        const decoders = createContentDecoders(encoding);
+        if (decoders.length) {
+          pipeline([body, ...decoders], destroy);
+          body = decoders[decoders.length - 1];
+        }
         outgoing.on('error', destroy);
       }
 
