@@ -1,5 +1,20 @@
 # minifetch
 
+## 0.4.11
+
+### Patch Changes
+
+- Preserve HEAD requests when following 303 redirects instead of changing them to GET
+  Submitted by [@kitten](https://github.com/kitten) (See [#50](https://github.com/kitten/fetch-nodeshim/pull/50))
+- Reject GET and HEAD requests with a body before sending, including bodies inherited from a Request when overriding its method
+  Submitted by [@kitten](https://github.com/kitten) (See [#48](https://github.com/kitten/fetch-nodeshim/pull/48))
+- Respect init.method when fetching a Request and send inherited streaming bodies correctly when overriding the method to DELETE
+  Submitted by [@kitten](https://github.com/kitten) (See [#47](https://github.com/kitten/fetch-nodeshim/pull/47))
+- Increase the default timeout after connecting to 300 seconds to align with Node's built-in fetch
+  Submitted by [@kitten](https://github.com/kitten) (See [#52](https://github.com/kitten/fetch-nodeshim/pull/52))
+- Decode stacked Content-Encoding values in reverse order, leaving responses with unsupported encodings untouched
+  Submitted by [@kitten](https://github.com/kitten) (See [#46](https://github.com/kitten/fetch-nodeshim/pull/46))
+
 ## 0.4.10
 
 ### Patch Changes
